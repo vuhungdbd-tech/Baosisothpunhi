@@ -6790,6 +6790,35 @@ export const StorageService = {
         return { success: true, message: `Đã đẩy ${list.length} nhật ký ký duyệt tháng lên Supabase!`, count: list.length };
       }
 
+      if (tableKey === 'boarding_standard_configs') {
+        const rawStandards = localStorage.getItem(STORAGE_KEYS.STANDARD_CONFIGS);
+        const standardConfigsMap = rawStandards ? JSON.parse(rawStandards) : {};
+        const stdList: any[] = [];
+        Object.entries(standardConfigsMap).forEach(([key, cfg]: [string, any]) => {
+          const parts = key.split('_');
+          const classId = parts[0];
+          const month = parts.slice(1).join('_');
+          if (classId && month && cfg) {
+            stdList.push({
+              id: `stdcfg_${classId}_${month}`,
+              class_id: classId,
+              month: month,
+              breakfast: cfg.breakfast !== undefined ? cfg.breakfast : null,
+              lunch: cfg.lunch !== undefined ? cfg.lunch : null,
+              dinner: cfg.dinner !== undefined ? cfg.dinner : null,
+              auto_sync: Boolean(cfg.auto_sync),
+              mode: cfg.mode || 'CUSTOM',
+              updated_at: new Date().toISOString(),
+            });
+          }
+        });
+        if (stdList.length > 0) {
+          const { error } = await supabase.from('boarding_standard_configs').upsert(stdList, { onConflict: 'class_id,month' });
+          if (error) throw new Error(error.message);
+        }
+        return { success: true, message: `Đã đẩy ${stdList.length} định mức ăn chuẩn lên Supabase!`, count: stdList.length };
+      }
+
       return { success: false, message: `Bảng "${tableKey}" không hợp lệ.`, count: 0 };
     } catch (err: any) {
       return { success: false, message: `Lỗi đẩy bảng ${tableKey}: ${err?.message || err}`, count: 0 };
@@ -7138,6 +7167,7 @@ export const StorageService = {
       { key: 'boarding_reports', label: 'Sổ chấm ăn bán trú ngày (boarding_reports)', storageKey: STORAGE_KEYS.BOARDING_REPORTS },
       { key: 'boarding_signature_configs', label: 'Cấu hình chữ ký số bán trú (boarding_signature_configs)', storageKey: STORAGE_KEYS.SIGNATURE_CONFIGS },
       { key: 'boarding_month_signatures', label: 'Ký số & Định mức ăn tháng (boarding_month_signatures)', storageKey: STORAGE_KEYS.MONTH_SIGNATURES },
+      { key: 'boarding_standard_configs', label: 'Định mức ăn chuẩn các lớp (boarding_standard_configs)', storageKey: STORAGE_KEYS.STANDARD_CONFIGS, isMap: true },
     ];
 
     const results: TableSyncStatus[] = [];
@@ -7148,6 +7178,13 @@ export const StorageService = {
       if (raw) {
         if (def.isObject) {
           localCount = 1;
+        } else if ((def as any).isMap) {
+          try {
+            const parsed = JSON.parse(raw);
+            localCount = parsed ? Object.keys(parsed).length : 0;
+          } catch {
+            localCount = 0;
+          }
         } else {
           try {
             const parsed = JSON.parse(raw);

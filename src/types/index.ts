@@ -4,6 +4,16 @@ export type InputCalculationMode = 'MODE_1_TOTAL_PRESENT' | 'MODE_2_TOTAL_ABSENT
 
 export type ReportStatus = 'NOT_REPORTED' | 'REPORTED' | 'LOCKED';
 
+export type TeachingScope = 'NHA_TRE' | 'MAU_GIAO' | 'ALL';
+
+export interface PreschoolGradeConfig {
+  id: string;
+  name: string;
+  grade_num: number;
+  category: 'NHA_TRE' | 'MAU_GIAO';
+  age_range?: string;
+}
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -12,6 +22,7 @@ export interface Profile {
   assigned_class_id?: string;
   active: boolean;
   phone?: string;
+  teaching_scope?: TeachingScope;
   created_at: string;
 }
 

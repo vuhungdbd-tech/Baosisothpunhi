@@ -36,6 +36,7 @@ interface SchoolContextType {
   deleteStudent: (studentId: string) => Promise<void>;
   deleteStudentsByClass: (classId: string, className?: string) => Promise<void>;
   importStudents: (students: Array<Omit<Student, 'id' | 'created_at'>>, replaceClassId?: string, replaceClassName?: string) => Promise<void>;
+  cleanDuplicateTeachers: () => Promise<{ removedCount: number }>;
 }
 
 const SchoolContext = createContext<SchoolContextType | undefined>(undefined);
@@ -418,6 +419,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         deleteStudent,
         deleteStudentsByClass,
         importStudents,
+        cleanDuplicateTeachers: async () => ({ removedCount: 0 }),
       }}
     >
       {children}

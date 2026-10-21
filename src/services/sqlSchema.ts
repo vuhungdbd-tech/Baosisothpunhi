@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     assigned_class_id TEXT,
     active BOOLEAN NOT NULL DEFAULT true,
     phone TEXT,
+    teaching_scope TEXT DEFAULT 'ALL',
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
@@ -275,231 +276,155 @@ CREATE TABLE IF NOT EXISTS public.boarding_month_signatures (
     CONSTRAINT unique_class_month_signature UNIQUE (class_id, month)
 );
 
+-- 17. TABLE: boarding_standard_configs (Định mức số ngày ăn chuẩn từng lớp theo tháng)
+CREATE TABLE IF NOT EXISTS public.boarding_standard_configs (
+    id TEXT PRIMARY KEY,
+    class_id TEXT NOT NULL,
+    month TEXT NOT NULL,
+    breakfast INTEGER,
+    lunch INTEGER,
+    dinner INTEGER,
+    auto_sync BOOLEAN DEFAULT false,
+    mode TEXT DEFAULT 'CUSTOM',
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT unique_class_standard_month UNIQUE (class_id, month)
+);
+
 -- ==============================================================================
--- CẬP NHẬT CẤU TRÚC BẢNG (MIGRATIONS)
--- Tự động thêm các cột mới nếu đã tạo bảng từ phiên bản trước đó
+-- CẬP NHẬT CẤU TRÚC BẢNG (MIGRATIONS) - BỔ SUNG ĐẦY ĐỦ MỌI CỘT CHO MỌI BẢNG
+-- Tương thích 100% với PostgreSQL/Supabase: Không bao giờ bị lỗi thiếu cột
 -- ==============================================================================
+-- Cấu hình trường (school_settings)
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS short_name TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS department_name TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS sub_department_name TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS commune TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS province TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS phone TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS website TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS student_results_url TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS principal_name TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS principal_title TEXT DEFAULT 'Hiệu trưởng';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS reporter_name TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS reporter_title TEXT DEFAULT 'Người lập biểu';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS report_title TEXT DEFAULT 'BÁO CÁO SĨ SỐ HỌC SINH';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS footer_text TEXT DEFAULT '';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS developer_name TEXT DEFAULT 'Vũ Văn Hùng';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS developer_contact TEXT DEFAULT 'SĐT: 0984246993';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS primary_color TEXT DEFAULT '#1d4ed8';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS input_mode TEXT DEFAULT 'MODE_1_TOTAL_PRESENT';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS enable_campuses BOOLEAN DEFAULT false;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS week1_start_date TEXT DEFAULT '2026-09-07';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS school_days_per_week INTEGER DEFAULT 5;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS ranking_threshold_excellent NUMERIC DEFAULT 98;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS ranking_threshold_good NUMERIC DEFAULT 95;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS ranking_threshold_fair NUMERIC DEFAULT 90;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS enable_early_report_bonus BOOLEAN DEFAULT true;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS early_report_deadline TEXT DEFAULT '07:30';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS early_report_bonus_points NUMERIC DEFAULT 0.5;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS early_report_max_bonus NUMERIC DEFAULT 2.5;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS enable_auto_reminder BOOLEAN DEFAULT true;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS auto_reminder_time TEXT DEFAULT '07:30';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS reminder_message_template TEXT DEFAULT 'Lớp {class_name} chưa nộp báo cáo sĩ số ngày hôm nay ({date}). Thầy/Cô vui lòng cập nhật sớm trước 07h30 để BGH tổng hợp toàn trường và không bị trừ điểm thi đua!';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS friday_breakfast BOOLEAN DEFAULT true;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS friday_lunch BOOLEAN DEFAULT true;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS friday_dinner BOOLEAN DEFAULT false;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS saturday_breakfast BOOLEAN DEFAULT false;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS saturday_lunch BOOLEAN DEFAULT false;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS saturday_dinner BOOLEAN DEFAULT false;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS allow_gvcn_report_friday BOOLEAN DEFAULT true;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS allow_gvcn_report_saturday BOOLEAN DEFAULT false;
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS boarding_sheet_title TEXT DEFAULT 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now());
+
+-- Tài khoản người dùng (profiles)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS teaching_scope TEXT DEFAULT 'ALL';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS assigned_class_id TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+
+-- Phân hiệu / Điểm trường (campuses)
+ALTER TABLE public.campuses ADD COLUMN IF NOT EXISTS principal_name TEXT;
+ALTER TABLE public.campuses ADD COLUMN IF NOT EXISTS principal_title TEXT;
+ALTER TABLE public.campuses ADD COLUMN IF NOT EXISTS reporter_name TEXT;
+ALTER TABLE public.campuses ADD COLUMN IF NOT EXISTS reporter_title TEXT;
+ALTER TABLE public.campuses ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+
+-- Lớp học (classes)
+ALTER TABLE public.classes ADD COLUMN IF NOT EXISTS campus_id TEXT;
+ALTER TABLE public.classes ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT false;
+ALTER TABLE public.classes ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
+ALTER TABLE public.classes ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+
+-- Năm học (school_years)
+ALTER TABLE public.school_years ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT false;
+ALTER TABLE public.school_years ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT false;
+
+-- Nhóm chỉ tiêu (indicator_groups)
+ALTER TABLE public.indicator_groups ADD COLUMN IF NOT EXISTS icon TEXT;
+ALTER TABLE public.indicator_groups ADD COLUMN IF NOT EXISTS column_header_override TEXT;
+ALTER TABLE public.indicator_groups ADD COLUMN IF NOT EXISTS show_total BOOLEAN DEFAULT true;
+ALTER TABLE public.indicator_groups ADD COLUMN IF NOT EXISTS show_present BOOLEAN DEFAULT true;
+ALTER TABLE public.indicator_groups ADD COLUMN IF NOT EXISTS show_absent BOOLEAN DEFAULT true;
+ALTER TABLE public.indicator_groups ADD COLUMN IF NOT EXISTS show_percentage BOOLEAN DEFAULT true;
+
+-- Báo cáo sĩ số ngày (daily_reports)
+ALTER TABLE public.daily_reports ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ;
+ALTER TABLE public.daily_reports ADD COLUMN IF NOT EXISTS reported_time TEXT;
+ALTER TABLE public.daily_reports ADD COLUMN IF NOT EXISTS absent_students JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.daily_reports ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.daily_reports ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'SUBMITTED';
+
+-- Học sinh (students)
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS village TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS gender TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS student_code TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS birth_date TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS ethnicity TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS is_boarding BOOLEAN DEFAULT false;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now());
+
+-- Chữ ký & Định mức tháng (boarding_month_signatures)
+ALTER TABLE public.boarding_month_signatures ADD COLUMN IF NOT EXISTS standard_breakfast INTEGER;
+ALTER TABLE public.boarding_month_signatures ADD COLUMN IF NOT EXISTS standard_lunch INTEGER;
+ALTER TABLE public.boarding_month_signatures ADD COLUMN IF NOT EXISTS standard_dinner INTEGER;
+ALTER TABLE public.boarding_month_signatures ADD COLUMN IF NOT EXISTS certificate_hash TEXT DEFAULT '';
+ALTER TABLE public.boarding_month_signatures ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+
+-- Cấu hình chữ ký (boarding_signature_configs)
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS location_name TEXT DEFAULT 'Xa Dung';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS teacher_title TEXT DEFAULT 'GIÁO VIÊN CHỦ NHIỆM';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS teacher_name TEXT DEFAULT '';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS principal_title TEXT DEFAULT 'HIỆU TRƯỞNG';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS principal_name TEXT DEFAULT '';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS accountant_title TEXT DEFAULT 'KẾ TOÁN BÁN TRÚ';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS accountant_name TEXT DEFAULT '';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS enable_digital_signature BOOLEAN DEFAULT true;
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS signature_image_url TEXT DEFAULT '';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS stamp_image_url TEXT DEFAULT '';
+ALTER TABLE public.boarding_signature_configs ADD COLUMN IF NOT EXISTS certificate_serial TEXT DEFAULT '';
+
+-- HỦY BỎ KHÓA NGOẠI CHẶT CHẼ ĐỂ TRÁNH LỖI KHI GVCN NHẬP HỌC SINH MỚI HOẶC LƯU LỆCH THỨ TỰ
 DO $$
 BEGIN
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN student_results_url TEXT DEFAULT '';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN input_mode TEXT DEFAULT 'MODE_1_TOTAL_PRESENT' CHECK (input_mode IN ('MODE_1_TOTAL_PRESENT', 'MODE_2_TOTAL_ABSENT', 'MODE_3_ALL_THREE'));
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN enable_campuses BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN primary_color TEXT DEFAULT '#1d4ed8';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN developer_name TEXT DEFAULT 'Vũ Văn Hùng';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN developer_contact TEXT DEFAULT 'SĐT: 0984246993';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN week1_start_date TEXT DEFAULT '2026-09-07';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN school_days_per_week INTEGER DEFAULT 5;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN ranking_threshold_excellent NUMERIC DEFAULT 98;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN ranking_threshold_good NUMERIC DEFAULT 95;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN ranking_threshold_fair NUMERIC DEFAULT 90;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN enable_early_report_bonus BOOLEAN DEFAULT true;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN early_report_deadline TEXT DEFAULT '07:30';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN early_report_bonus_points NUMERIC DEFAULT 0.5;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN early_report_max_bonus NUMERIC DEFAULT 2.5;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN enable_auto_reminder BOOLEAN DEFAULT true;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN auto_reminder_time TEXT DEFAULT '07:30';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN reminder_message_template TEXT DEFAULT 'Lớp {class_name} chưa nộp báo cáo sĩ số ngày hôm nay ({date}). Thầy/Cô vui lòng cập nhật sớm trước 07h30 để BGH tổng hợp toàn trường và không bị trừ điểm thi đua!';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN friday_breakfast BOOLEAN DEFAULT true;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN friday_lunch BOOLEAN DEFAULT true;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN friday_dinner BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN saturday_breakfast BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN saturday_lunch BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN saturday_dinner BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN allow_gvcn_report_friday BOOLEAN DEFAULT true;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN allow_gvcn_report_saturday BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_settings ADD COLUMN boarding_sheet_title TEXT DEFAULT 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ';
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.classes ADD COLUMN campus_id TEXT REFERENCES public.campuses(id) ON DELETE SET NULL;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.classes ADD COLUMN is_locked BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.classes ADD COLUMN sort_order INTEGER DEFAULT 0;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.school_years ADD COLUMN is_locked BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.indicator_groups ADD COLUMN icon TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.daily_reports ADD COLUMN locked_at TIMESTAMPTZ;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.daily_reports ADD COLUMN reported_time TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.campuses ADD COLUMN principal_name TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.campuses ADD COLUMN principal_title TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.campuses ADD COLUMN reporter_name TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.campuses ADD COLUMN reporter_title TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    -- Migrations for public.students
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN village TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN gender TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN student_code TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN birth_date TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN ethnicity TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN notes TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN address TEXT;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.students ADD COLUMN is_boarding BOOLEAN DEFAULT false;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    -- Migrations for public.boarding_month_signatures (Định mức số ngày ăn chuẩn theo tháng)
-    BEGIN
-        ALTER TABLE public.boarding_month_signatures ADD COLUMN standard_breakfast INTEGER;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.boarding_month_signatures ADD COLUMN standard_lunch INTEGER;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    BEGIN
-        ALTER TABLE public.boarding_month_signatures ADD COLUMN standard_dinner INTEGER;
-    EXCEPTION WHEN duplicate_column THEN END;
-
-    -- HỦY BỎ KHÓA NGOẠI CHẶT CHẼ ĐỂ TRÁNH LỖI KHI GVCN NHẬP HỌC SINH MỚI / LỆCH MÃ LỚP
-    BEGIN
-        ALTER TABLE public.students DROP CONSTRAINT IF EXISTS students_class_id_fkey;
-    EXCEPTION WHEN OTHERS THEN END;
-
-    BEGIN
-        ALTER TABLE public.daily_reports DROP CONSTRAINT IF EXISTS daily_reports_class_id_fkey;
-    EXCEPTION WHEN OTHERS THEN END;
-
-    BEGIN
-        ALTER TABLE public.boarding_reports DROP CONSTRAINT IF EXISTS boarding_reports_class_id_fkey;
-    EXCEPTION WHEN OTHERS THEN END;
-
-    BEGIN
-        ALTER TABLE public.boarding_signature_configs DROP CONSTRAINT IF EXISTS boarding_signature_configs_class_id_fkey;
-    EXCEPTION WHEN OTHERS THEN END;
-
-    BEGIN
-        ALTER TABLE public.boarding_month_signatures DROP CONSTRAINT IF EXISTS boarding_month_signatures_class_id_fkey;
-    EXCEPTION WHEN OTHERS THEN END;
-END $$;
+    ALTER TABLE public.classes DROP CONSTRAINT IF EXISTS classes_school_year_id_fkey;
+    ALTER TABLE public.classes DROP CONSTRAINT IF EXISTS classes_campus_id_fkey;
+    ALTER TABLE public.classes DROP CONSTRAINT IF EXISTS classes_homeroom_teacher_id_fkey;
+    ALTER TABLE public.students DROP CONSTRAINT IF EXISTS students_class_id_fkey;
+    ALTER TABLE public.daily_reports DROP CONSTRAINT IF EXISTS daily_reports_class_id_fkey;
+    ALTER TABLE public.daily_reports DROP CONSTRAINT IF EXISTS daily_reports_created_by_fkey;
+    ALTER TABLE public.boarding_reports DROP CONSTRAINT IF EXISTS boarding_reports_class_id_fkey;
+    ALTER TABLE public.boarding_signature_configs DROP CONSTRAINT IF EXISTS boarding_signature_configs_class_id_fkey;
+    ALTER TABLE public.boarding_month_signatures DROP CONSTRAINT IF EXISTS boarding_month_signatures_class_id_fkey;
+    ALTER TABLE public.boarding_standard_configs DROP CONSTRAINT IF EXISTS boarding_standard_configs_class_id_fkey;
+EXCEPTION WHEN OTHERS THEN END;
+$$;
 
 -- Nạp sẵn 8 lớp học tiêu chuẩn của trường nếu chưa có
 INSERT INTO public.classes (id, class_name, grade, active, sort_order)
@@ -533,57 +458,61 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boarding_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boarding_signature_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boarding_month_signatures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.boarding_standard_configs ENABLE ROW LEVEL SECURITY;
 
--- Cấp quyền truy cập cho anon & authenticated
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+-- Cấp quyền truy cập cho anon, authenticated & service_role
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
 
 -- Policies: Cho phép đọc/ghi an toàn từ ứng dụng
 DROP POLICY IF EXISTS "Allow all for profiles" ON public.profiles;
-CREATE POLICY "Allow all for profiles" ON public.profiles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for profiles" ON public.profiles FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for school_settings" ON public.school_settings;
-CREATE POLICY "Allow all for school_settings" ON public.school_settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for school_settings" ON public.school_settings FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for school_years" ON public.school_years;
-CREATE POLICY "Allow all for school_years" ON public.school_years FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for school_years" ON public.school_years FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for campuses" ON public.campuses;
-CREATE POLICY "Allow all for campuses" ON public.campuses FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for campuses" ON public.campuses FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for classes" ON public.classes;
-CREATE POLICY "Allow all for classes" ON public.classes FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for classes" ON public.classes FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for indicator_groups" ON public.indicator_groups;
-CREATE POLICY "Allow all for indicator_groups" ON public.indicator_groups FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for indicator_groups" ON public.indicator_groups FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for daily_reports" ON public.daily_reports;
-CREATE POLICY "Allow all for daily_reports" ON public.daily_reports FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for daily_reports" ON public.daily_reports FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for daily_report_values" ON public.daily_report_values;
-CREATE POLICY "Allow all for daily_report_values" ON public.daily_report_values FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for daily_report_values" ON public.daily_report_values FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for system_logs" ON public.system_logs;
-CREATE POLICY "Allow all for system_logs" ON public.system_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for system_logs" ON public.system_logs FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for students" ON public.students;
-CREATE POLICY "Allow all for students" ON public.students FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for students" ON public.students FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for school_off_days" ON public.school_off_days;
-CREATE POLICY "Allow all for school_off_days" ON public.school_off_days FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for school_off_days" ON public.school_off_days FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for notifications" ON public.notifications;
-CREATE POLICY "Allow all for notifications" ON public.notifications FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for notifications" ON public.notifications FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for boarding_reports" ON public.boarding_reports;
-CREATE POLICY "Allow all for boarding_reports" ON public.boarding_reports FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for boarding_reports" ON public.boarding_reports FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for boarding_signature_configs" ON public.boarding_signature_configs;
-CREATE POLICY "Allow all for boarding_signature_configs" ON public.boarding_signature_configs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for boarding_signature_configs" ON public.boarding_signature_configs FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for boarding_month_signatures" ON public.boarding_month_signatures;
-CREATE POLICY "Allow all for boarding_month_signatures" ON public.boarding_month_signatures FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for boarding_month_signatures" ON public.boarding_month_signatures FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all for boarding_standard_configs" ON public.boarding_standard_configs;
+CREATE POLICY "Allow all for boarding_standard_configs" ON public.boarding_standard_configs FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 -- ==============================================================================
 -- DỌN DẸP SẠCH TOÀN BỘ HỌC SINH MẪU TỰ SINH TRÊN SUPABASE (NẾU CÓ)
@@ -1149,8 +1078,48 @@ export const generateFullDatabaseSqlScript = (): string => {
 ) ON CONFLICT (id) DO UPDATE SET
     school_name = EXCLUDED.school_name,
     short_name = EXCLUDED.short_name,
+    department_name = EXCLUDED.department_name,
+    sub_department_name = EXCLUDED.sub_department_name,
+    address = EXCLUDED.address,
+    commune = EXCLUDED.commune,
+    province = EXCLUDED.province,
+    phone = EXCLUDED.phone,
+    email = EXCLUDED.email,
+    website = EXCLUDED.website,
+    student_results_url = EXCLUDED.student_results_url,
+    logo_url = EXCLUDED.logo_url,
     principal_name = EXCLUDED.principal_name,
+    principal_title = EXCLUDED.principal_title,
     reporter_name = EXCLUDED.reporter_name,
+    reporter_title = EXCLUDED.reporter_title,
+    report_title = EXCLUDED.report_title,
+    footer_text = EXCLUDED.footer_text,
+    developer_name = EXCLUDED.developer_name,
+    developer_contact = EXCLUDED.developer_contact,
+    primary_color = EXCLUDED.primary_color,
+    input_mode = EXCLUDED.input_mode,
+    enable_campuses = EXCLUDED.enable_campuses,
+    week1_start_date = EXCLUDED.week1_start_date,
+    school_days_per_week = EXCLUDED.school_days_per_week,
+    ranking_threshold_excellent = EXCLUDED.ranking_threshold_excellent,
+    ranking_threshold_good = EXCLUDED.ranking_threshold_good,
+    ranking_threshold_fair = EXCLUDED.ranking_threshold_fair,
+    enable_early_report_bonus = EXCLUDED.enable_early_report_bonus,
+    early_report_deadline = EXCLUDED.early_report_deadline,
+    early_report_bonus_points = EXCLUDED.early_report_bonus_points,
+    early_report_max_bonus = EXCLUDED.early_report_max_bonus,
+    enable_auto_reminder = EXCLUDED.enable_auto_reminder,
+    auto_reminder_time = EXCLUDED.auto_reminder_time,
+    reminder_message_template = EXCLUDED.reminder_message_template,
+    friday_breakfast = EXCLUDED.friday_breakfast,
+    friday_lunch = EXCLUDED.friday_lunch,
+    friday_dinner = EXCLUDED.friday_dinner,
+    saturday_breakfast = EXCLUDED.saturday_breakfast,
+    saturday_lunch = EXCLUDED.saturday_lunch,
+    saturday_dinner = EXCLUDED.saturday_dinner,
+    allow_gvcn_report_friday = EXCLUDED.allow_gvcn_report_friday,
+    allow_gvcn_report_saturday = EXCLUDED.allow_gvcn_report_saturday,
+    boarding_sheet_title = EXCLUDED.boarding_sheet_title,
     updated_at = timezone('utc'::text, now());\n\n`;
     }
 
@@ -1178,7 +1147,7 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, is_active = EXCLUDED.is_act
         campuses.forEach((c) => {
           sql += `INSERT INTO public.campuses (id, name, active, principal_name, principal_title, reporter_name, reporter_title)
 VALUES (${escapeSql(c.id)}, ${escapeSql(c.name)}, ${escapeSql(Boolean(c.active))}, ${escapeSql(c.principal_name)}, ${escapeSql(c.principal_title)}, ${escapeSql(c.reporter_name)}, ${escapeSql(c.reporter_title)})
-ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, active = EXCLUDED.active;\n`;
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, active = EXCLUDED.active, principal_name = EXCLUDED.principal_name, principal_title = EXCLUDED.principal_title, reporter_name = EXCLUDED.reporter_name, reporter_title = EXCLUDED.reporter_title;\n`;
         });
         sql += `\n`;
       }
@@ -1191,9 +1160,9 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, active = EXCLUDED.active;\n
       if (Array.isArray(profiles) && profiles.length > 0) {
         sql += `-- 4. TÀI KHOẢN NGƯỜI DÙNG (${profiles.length} tài khoản)\n`;
         profiles.forEach((p) => {
-          sql += `INSERT INTO public.profiles (id, full_name, email, role, assigned_class_id, active, phone)
-VALUES (${escapeSql(p.id)}, ${escapeSql(p.full_name)}, ${escapeSql(p.email)}, ${escapeSql(p.role)}, ${escapeSql(p.assigned_class_id)}, ${escapeSql(Boolean(p.active))}, ${escapeSql(p.phone)})
-ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, email = EXCLUDED.email, role = EXCLUDED.role, assigned_class_id = EXCLUDED.assigned_class_id, active = EXCLUDED.active;\n`;
+          sql += `INSERT INTO public.profiles (id, full_name, email, role, assigned_class_id, active, phone, teaching_scope)
+VALUES (${escapeSql(p.id)}, ${escapeSql(p.full_name)}, ${escapeSql(p.email)}, ${escapeSql(p.role)}, ${escapeSql(p.assigned_class_id)}, ${escapeSql(Boolean(p.active))}, ${escapeSql(p.phone)}, ${escapeSql(p.teaching_scope || 'ALL')})
+ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, email = EXCLUDED.email, role = EXCLUDED.role, assigned_class_id = EXCLUDED.assigned_class_id, active = EXCLUDED.active, phone = EXCLUDED.phone, teaching_scope = EXCLUDED.teaching_scope;\n`;
         });
         sql += `\n`;
       }
@@ -1208,7 +1177,7 @@ ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, email = EXCLUDED.
         classes.forEach((cls) => {
           sql += `INSERT INTO public.classes (id, class_name, grade, school_year_id, campus_id, homeroom_teacher_id, active, is_locked, sort_order)
 VALUES (${escapeSql(cls.id)}, ${escapeSql(cls.class_name)}, ${escapeSql(cls.grade)}, ${escapeSql(cls.school_year_id)}, ${escapeSql(cls.campus_id)}, ${escapeSql(cls.homeroom_teacher_id)}, ${escapeSql(Boolean(cls.active))}, ${escapeSql(Boolean(cls.is_locked))}, ${escapeSql(Number(cls.sort_order) || 0)})
-ON CONFLICT (id) DO UPDATE SET class_name = EXCLUDED.class_name, grade = EXCLUDED.grade, school_year_id = EXCLUDED.school_year_id, campus_id = EXCLUDED.campus_id, homeroom_teacher_id = EXCLUDED.homeroom_teacher_id, is_locked = EXCLUDED.is_locked, sort_order = EXCLUDED.sort_order;\n`;
+ON CONFLICT (id) DO UPDATE SET class_name = EXCLUDED.class_name, grade = EXCLUDED.grade, school_year_id = EXCLUDED.school_year_id, campus_id = EXCLUDED.campus_id, homeroom_teacher_id = EXCLUDED.homeroom_teacher_id, active = EXCLUDED.active, is_locked = EXCLUDED.is_locked, sort_order = EXCLUDED.sort_order;\n`;
         });
         sql += `\n`;
       }
@@ -1223,7 +1192,7 @@ ON CONFLICT (id) DO UPDATE SET class_name = EXCLUDED.class_name, grade = EXCLUDE
         indicators.forEach((ind) => {
           sql += `INSERT INTO public.indicator_groups (id, name, code, enabled, sort_order, show_total, show_present, show_absent, show_percentage, column_header_override, icon)
 VALUES (${escapeSql(ind.id)}, ${escapeSql(ind.name)}, ${escapeSql(ind.code)}, ${escapeSql(Boolean(ind.enabled))}, ${escapeSql(Number(ind.sort_order) || 0)}, ${escapeSql(Boolean(ind.show_total))}, ${escapeSql(Boolean(ind.show_present))}, ${escapeSql(Boolean(ind.show_absent))}, ${escapeSql(Boolean(ind.show_percentage))}, ${escapeSql(ind.column_header_override)}, ${escapeSql(ind.icon)})
-ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, code = EXCLUDED.code, enabled = EXCLUDED.enabled, sort_order = EXCLUDED.sort_order, icon = EXCLUDED.icon;\n`;
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, code = EXCLUDED.code, enabled = EXCLUDED.enabled, sort_order = EXCLUDED.sort_order, show_total = EXCLUDED.show_total, show_present = EXCLUDED.show_present, show_absent = EXCLUDED.show_absent, show_percentage = EXCLUDED.show_percentage, column_header_override = EXCLUDED.column_header_override, icon = EXCLUDED.icon;\n`;
         });
         sql += `\n`;
       }
@@ -1419,6 +1388,26 @@ ON CONFLICT (class_id, month) DO UPDATE SET is_signed = EXCLUDED.is_signed, sign
 VALUES (${escapeSql(id)}, ${escapeSql(classId)}, ${escapeSql(month)}, false, '', 'GVCN', 'Xa Dung', ${b !== null ? b : 'NULL'}, ${l !== null ? l : 'NULL'}, ${d !== null ? d : 'NULL'})
 ON CONFLICT (class_id, month) DO UPDATE SET standard_breakfast = EXCLUDED.standard_breakfast, standard_lunch = EXCLUDED.standard_lunch, standard_dinner = EXCLUDED.standard_dinner;\n`;
           }
+        }
+      });
+      sql += `\n`;
+    }
+
+    // 16. boarding_standard_configs (Bảng định mức ăn chuẩn chuyên biệt)
+    if (Object.keys(standardMap).length > 0) {
+      sql += `-- 16. ĐỊNH MỨC ĂN CHUẨN CÁC LỚP THEO THÁNG (${Object.keys(standardMap).length} định mức)\n`;
+      Object.entries(standardMap).forEach(([key, cfg]: [string, any]) => {
+        const parts = key.split('_');
+        const classId = parts[0];
+        const month = parts.slice(1).join('_');
+        if (classId && month && cfg) {
+          const id = `stdcfg_${classId}_${month}`;
+          const b = cfg.breakfast !== undefined && cfg.breakfast !== null ? Number(cfg.breakfast) : null;
+          const l = cfg.lunch !== undefined && cfg.lunch !== null ? Number(cfg.lunch) : null;
+          const d = cfg.dinner !== undefined && cfg.dinner !== null ? Number(cfg.dinner) : null;
+          sql += `INSERT INTO public.boarding_standard_configs (id, class_id, month, breakfast, lunch, dinner, auto_sync, mode, updated_at)
+VALUES (${escapeSql(id)}, ${escapeSql(classId)}, ${escapeSql(month)}, ${b !== null ? b : 'NULL'}, ${l !== null ? l : 'NULL'}, ${d !== null ? d : 'NULL'}, ${escapeSql(Boolean(cfg.auto_sync))}, ${escapeSql(cfg.mode || 'CUSTOM')}, timezone('utc'::text, now()))
+ON CONFLICT (class_id, month) DO UPDATE SET breakfast = EXCLUDED.breakfast, lunch = EXCLUDED.lunch, dinner = EXCLUDED.dinner, auto_sync = EXCLUDED.auto_sync, mode = EXCLUDED.mode, updated_at = timezone('utc'::text, now());\n`;
         }
       });
       sql += `\n`;
