@@ -157,6 +157,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   // Xử lý khi GVCN chọn lớp: tự động gắn và hiển thị đúng GVCN
   const handleClassChange = (classId: string) => {
+    console.log('Class selected:', classId);
     setSelectedClassId(classId);
     setError('');
 
@@ -166,8 +167,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
 
     const targetCls = classes.find((c) => c.id === classId);
+    console.log('Target class found:', targetCls);
     if (targetCls) {
       const matched = findMatchedTeacher(targetCls);
+      console.log('Matched teacher:', matched);
       if (matched) {
         setSelectedTeacherId(matched.id);
       } else {
