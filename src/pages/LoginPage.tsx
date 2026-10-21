@@ -745,7 +745,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         className="w-full bg-transparent text-xs sm:text-[13.5px] font-semibold text-slate-800 focus:outline-hidden cursor-pointer appearance-none pr-6"
                       >
                         <option value="">Chọn tên lớp</option>
-                        {[6, 7, 8, 9].map((grade) => {
+                        {(settings?.grades || [6, 7, 8, 9]).map((grade) => {
                           const grp = sortedClasses.filter((c) => c.grade === grade);
                           if (grp.length === 0) return null;
                           return (

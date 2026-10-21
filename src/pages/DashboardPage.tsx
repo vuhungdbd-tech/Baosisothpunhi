@@ -278,7 +278,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onSele
   // Grade-by-grade stats for visualization
   const gradeStats = useMemo(() => {
     if (!aggregateData) return [];
-    const grades = [6, 7, 8, 9];
+    const grades = settings?.grades || [6, 7, 8, 9];
     return grades.map((g) => {
       const gradeRows = aggregateData.rows.filter((r) => r.classItem.grade === g);
       const totalClasses = gradeRows.length;

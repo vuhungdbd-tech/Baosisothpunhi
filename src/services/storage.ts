@@ -475,6 +475,7 @@ export function getInitialData() {
     allow_gvcn_report_friday: true,
     allow_gvcn_report_saturday: false,
     boarding_sheet_title: 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ',
+    grades: [6, 7, 8, 9],
     created_at: now,
     updated_at: now,
   };

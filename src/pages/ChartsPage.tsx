@@ -258,7 +258,7 @@ export const ChartsPage: React.FC = () => {
                 {classes.length} Lớp học
               </span>
             </div>
-            <p className="text-xs text-slate-500">Phân bố sĩ số học sinh giữa các khối 6, 7, 8, 9</p>
+            <p className="text-xs text-slate-500">Phân bố sĩ số học sinh giữa các khối {(settings?.grades || [6, 7, 8, 9]).join(', ')}</p>
           </div>
 
           <div className="h-64 w-full">

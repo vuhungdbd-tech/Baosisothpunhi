@@ -798,7 +798,7 @@ export const AttendanceRankingPage: React.FC<AttendanceRankingPageProps> = ({ on
             <div className="flex items-center gap-1">
               <span className="text-slate-500 font-semibold">Khối:</span>
               <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
-                {(['ALL', 6, 7, 8, 9] as const).map((g) => (
+                {(['ALL', ...(settings?.grades || [6, 7, 8, 9])] as const).map((g) => (
                   <button
                     key={g}
                     onClick={() => setSelectedGrade(g)}

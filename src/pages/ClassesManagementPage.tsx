@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 
 export const ClassesManagementPage: React.FC = () => {
-  const { classes, campuses, activeYear, addClass, updateClass, batchUpdateClasses, createTeacherAndAssign, deleteClass, toggleLockClass, students, addStudent, updateStudent, deleteStudent, deleteStudentsByClass, importStudents } = useSchool();
+  const { settings, classes, campuses, activeYear, addClass, updateClass, batchUpdateClasses, createTeacherAndAssign, deleteClass, toggleLockClass, students, addStudent, updateStudent, deleteStudent, deleteStudentsByClass, importStudents } = useSchool();
   const { allUsers, currentUser, isAdmin, isBGH, reloadUsers } = useAuth();
 
   // Filter & Search states
@@ -712,7 +712,7 @@ export const ClassesManagementPage: React.FC = () => {
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Grade tabs */}
         <div className="flex flex-wrap items-center gap-1.5">
-          {(['ALL', 6, 7, 8, 9] as const).map((g) => (
+          {(['ALL', ...(settings?.grades || [6, 7, 8, 9])] as const).map((g) => (
             <button
               key={g}
               onClick={() => setSelectedGrade(g)}
