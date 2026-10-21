@@ -776,7 +776,8 @@ export const StorageService = {
         for (let attempt = 0; attempt < 8; attempt++) {
           const { error } = await supabase.from('school_settings').upsert(curPayload);
           if (!error) break;
-
+          
+          await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1))); // Add delay with backoff
           console.warn(`Supabase update school_settings attempt ${attempt + 1} warning:`, error.message);
           const colMatch =
             error.message?.match(/column "?([a-zA-Z0-9_]+)"? of relation/i) ||
