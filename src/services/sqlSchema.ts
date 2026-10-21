@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS public.school_settings (
     allow_gvcn_report_friday BOOLEAN DEFAULT true,
     allow_gvcn_report_saturday BOOLEAN DEFAULT false,
     boarding_sheet_title TEXT DEFAULT 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ',
+    grades JSONB DEFAULT '[6, 7, 8, 9]'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
@@ -339,6 +340,7 @@ ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS saturday_dinner BOOL
 ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS allow_gvcn_report_friday BOOLEAN DEFAULT true;
 ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS allow_gvcn_report_saturday BOOLEAN DEFAULT false;
 ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS boarding_sheet_title TEXT DEFAULT 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ';
+ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS grades JSONB DEFAULT '[6, 7, 8, 9]'::jsonb;
 ALTER TABLE public.school_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now());
 
 -- Tài khoản người dùng (profiles)
@@ -1055,7 +1057,7 @@ export const generateFullDatabaseSqlScript = (): string => {
     auto_reminder_time, reminder_message_template,
     friday_breakfast, friday_lunch, friday_dinner,
     saturday_breakfast, saturday_lunch, saturday_dinner,
-    allow_gvcn_report_friday, allow_gvcn_report_saturday, boarding_sheet_title
+    allow_gvcn_report_friday, allow_gvcn_report_saturday, boarding_sheet_title, grades
 ) VALUES (
     ${escapeSql(s.id || 'school_01')}, ${escapeSql(s.school_name)}, ${escapeSql(s.short_name)}, ${escapeSql(s.department_name)}, ${escapeSql(s.sub_department_name)},
     ${escapeSql(s.address)}, ${escapeSql(s.commune)}, ${escapeSql(s.province)}, ${escapeSql(s.phone)}, ${escapeSql(s.email)}, ${escapeSql(s.website)}, ${escapeSql(s.student_results_url || '')}, ${escapeSql(s.logo_url)},
@@ -1074,7 +1076,8 @@ export const generateFullDatabaseSqlScript = (): string => {
     ${escapeSql(Boolean(s.saturday_dinner))},
     ${escapeSql(s.allow_gvcn_report_friday !== undefined ? Boolean(s.allow_gvcn_report_friday) : true)},
     ${escapeSql(Boolean(s.allow_gvcn_report_saturday))},
-    ${escapeSql(s.boarding_sheet_title || 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ')}
+    ${escapeSql(s.boarding_sheet_title || 'SỔ CHẤM ĂN HỌC SINH BÁN TRÚ')},
+    ${escapeSql(JSON.stringify(s.grades || [6, 7, 8, 9]))}::jsonb
 ) ON CONFLICT (id) DO UPDATE SET
     school_name = EXCLUDED.school_name,
     short_name = EXCLUDED.short_name,
@@ -1120,6 +1123,7 @@ export const generateFullDatabaseSqlScript = (): string => {
     allow_gvcn_report_friday = EXCLUDED.allow_gvcn_report_friday,
     allow_gvcn_report_saturday = EXCLUDED.allow_gvcn_report_saturday,
     boarding_sheet_title = EXCLUDED.boarding_sheet_title,
+    grades = EXCLUDED.grades,
     updated_at = timezone('utc'::text, now());\n\n`;
     }
 
