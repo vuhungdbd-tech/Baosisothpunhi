@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 
 export const ClassesManagementPage: React.FC = () => {
-  const { settings, classes, campuses, activeYear, addClass, updateClass, batchUpdateClasses, createTeacherAndAssign, deleteClass, toggleLockClass, students, addStudent, updateStudent, deleteStudent, deleteStudentsByClass, importStudents } = useSchool();
+  const { classes, campuses, activeYear, addClass, updateClass, batchUpdateClasses, createTeacherAndAssign, deleteClass, toggleLockClass, students, addStudent, updateStudent, deleteStudent, deleteStudentsByClass, importStudents } = useSchool();
   const { allUsers, currentUser, isAdmin, isBGH, reloadUsers } = useAuth();
 
   // Filter & Search states
@@ -712,7 +712,7 @@ export const ClassesManagementPage: React.FC = () => {
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Grade tabs */}
         <div className="flex flex-wrap items-center gap-1.5">
-          {(['ALL', ...(settings?.grades || [6, 7, 8, 9])] as const).map((g) => (
+          {(['ALL', 6, 7, 8, 9] as const).map((g) => (
             <button
               key={g}
               onClick={() => setSelectedGrade(g)}
@@ -829,9 +829,10 @@ export const ClassesManagementPage: React.FC = () => {
                             onChange={(e) => handleInlineChange(c.id, 'grade', Number(e.target.value))}
                             className="px-2 py-1 text-xs font-bold border border-blue-400 bg-white rounded-lg"
                           >
-                            {(settings?.grades || [6, 7, 8, 9]).map((g) => (
-                              <option key={g} value={g}>Khối {g}</option>
-                            ))}
+                            <option value={6}>Khối 6</option>
+                            <option value={7}>Khối 7</option>
+                            <option value={8}>Khối 8</option>
+                            <option value={9}>Khối 9</option>
                           </select>
                         ) : (
                           <span className="font-semibold text-slate-700">Khối {c.grade}</span>
@@ -1026,9 +1027,10 @@ export const ClassesManagementPage: React.FC = () => {
                     onChange={(e) => setFormGrade(Number(e.target.value))}
                     className="w-full px-3 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-hidden"
                   >
-                    {(settings?.grades || [6, 7, 8, 9]).map((g) => (
-                      <option key={g} value={g}>Khối {g}</option>
-                    ))}
+                    <option value={6}>Khối 6</option>
+                    <option value={7}>Khối 7</option>
+                    <option value={8}>Khối 8</option>
+                    <option value={9}>Khối 9</option>
                   </select>
                 </div>
 

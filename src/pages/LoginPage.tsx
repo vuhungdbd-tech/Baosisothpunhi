@@ -157,7 +157,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   // Xử lý khi GVCN chọn lớp: tự động gắn và hiển thị đúng GVCN
   const handleClassChange = (classId: string) => {
-    console.log('Class selected:', classId);
     setSelectedClassId(classId);
     setError('');
 
@@ -167,10 +166,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
 
     const targetCls = classes.find((c) => c.id === classId);
-    console.log('Target class found:', targetCls);
     if (targetCls) {
       const matched = findMatchedTeacher(targetCls);
-      console.log('Matched teacher:', matched);
       if (matched) {
         setSelectedTeacherId(matched.id);
       } else {
@@ -748,7 +745,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         className="w-full bg-transparent text-xs sm:text-[13.5px] font-semibold text-slate-800 focus:outline-hidden cursor-pointer appearance-none pr-6"
                       >
                         <option value="">Chọn tên lớp</option>
-                        {(settings?.grades || [6, 7, 8, 9]).map((grade) => {
+                        {[6, 7, 8, 9].map((grade) => {
                           const grp = sortedClasses.filter((c) => c.grade === grade);
                           if (grp.length === 0) return null;
                           return (

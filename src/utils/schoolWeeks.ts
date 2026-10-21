@@ -251,6 +251,3 @@ export function checkIsReportEarly(
   return { isEarly, timeStr, minutesEarly };
 }
 
-export const getSchoolWeeks = generateSchoolYearWeeks;
-
-

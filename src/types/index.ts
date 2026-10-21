@@ -4,16 +4,6 @@ export type InputCalculationMode = 'MODE_1_TOTAL_PRESENT' | 'MODE_2_TOTAL_ABSENT
 
 export type ReportStatus = 'NOT_REPORTED' | 'REPORTED' | 'LOCKED';
 
-export type TeachingScope = 'NHA_TRE' | 'MAU_GIAO' | 'ALL';
-
-export interface PreschoolGradeConfig {
-  id: string;
-  name: string;
-  grade_num: number;
-  category: 'NHA_TRE' | 'MAU_GIAO';
-  age_range?: string;
-}
-
 export interface Profile {
   id: string;
   full_name: string;
@@ -22,7 +12,6 @@ export interface Profile {
   assigned_class_id?: string;
   active: boolean;
   phone?: string;
-  teaching_scope?: TeachingScope;
   created_at: string;
 }
 
@@ -76,7 +65,6 @@ export interface SchoolSettings {
   allow_gvcn_report_friday?: boolean; // Cho phép GVCN báo sĩ số và chấm ăn cả ngày Thứ 6 (mặc định: true)
   allow_gvcn_report_saturday?: boolean; // Cho phép GVCN báo sĩ số và chấm ăn cả ngày Thứ 7 (mặc định: false)
   boarding_sheet_title?: string; // Tên sổ chấm ăn bán trú (mặc định: "SỔ CHẤM ĂN HỌC SINH BÁN TRÚ")
-  grades?: number[]; // Danh sách khối lớp (mặc định: [6, 7, 8, 9])
   created_at: string;
   updated_at: string;
 }

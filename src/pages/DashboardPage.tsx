@@ -278,7 +278,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onSele
   // Grade-by-grade stats for visualization
   const gradeStats = useMemo(() => {
     if (!aggregateData) return [];
-    const grades = settings?.grades || [6, 7, 8, 9];
+    const grades = [6, 7, 8, 9];
     return grades.map((g) => {
       const gradeRows = aggregateData.rows.filter((r) => r.classItem.grade === g);
       const totalClasses = gradeRows.length;
@@ -893,9 +893,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onSele
               className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold bg-white text-slate-700 focus:ring-2 focus:ring-blue-500"
             >
               <option value="ALL">Tất cả khối</option>
-              {(settings?.grades || [6, 7, 8, 9]).map((g) => (
-                <option key={g} value={g}>Khối {g}</option>
-              ))}
+              <option value="6">Khối 6</option>
+              <option value="7">Khối 7</option>
+              <option value="8">Khối 8</option>
+              <option value="9">Khối 9</option>
             </select>
 
             {/* Status filter */}

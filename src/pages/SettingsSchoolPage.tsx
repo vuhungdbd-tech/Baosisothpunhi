@@ -34,7 +34,6 @@ import {
   Moon,
   FileSpreadsheet,
   Calculator,
-  Layers,
 } from 'lucide-react';
 
 export const SettingsSchoolPage: React.FC = () => {
@@ -53,12 +52,10 @@ export const SettingsSchoolPage: React.FC = () => {
   const [formData, setFormData] = useState<Partial<SchoolSettings>>(settings || {});
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [gradesInput, setGradesInput] = useState<string>(() => (settings?.grades || [6, 7, 8, 9]).join(', '));
 
   useEffect(() => {
     if (settings) {
       setFormData(settings);
-      setGradesInput((settings.grades || [6, 7, 8, 9]).join(', '));
     }
   }, [settings]);
 
@@ -377,40 +374,6 @@ export const SettingsSchoolPage: React.FC = () => {
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               />
             </div>
-          </div>
-        </div>
-
-        {/* CARD: CẤU HÌNH KHỐI LỚP HỌC */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-5">
-          <div className="pb-3 border-b border-slate-100">
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-emerald-700" />
-              <span>CẤU HÌNH CÁC KHỐI LỚP TRONG TRƯỜNG</span>
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Mặc định các trường THCS là khối 6, 7, 8, 9. Bạn có thể thay đổi danh sách khối lớp (Ví dụ: 6, 7, 8, 9 hoặc 10, 11, 12 hoặc 1, 2, 3, 4, 5).
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Danh sách các khối lớp (phân tách bằng dấu phẩy)
-            </label>
-            <input
-              type="text"
-              value={gradesInput}
-              onChange={(e) => {
-                const val = e.target.value;
-                setGradesInput(val);
-                const parts = val.split(',').map((s) => parseInt(s.trim())).filter((n) => !isNaN(n));
-                setFormData({ ...formData, grades: parts.length > 0 ? parts : [6, 7, 8, 9] });
-              }}
-              placeholder="Ví dụ: 6, 7, 8, 9"
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-            />
-            <p className="text-[11px] text-slate-500 mt-1">
-              Khối lớp hiện tại: {(formData.grades || [6, 7, 8, 9]).map((g) => `Khối ${g}`).join(', ')}
-            </p>
           </div>
         </div>
 
@@ -1077,39 +1040,13 @@ export const SettingsSchoolPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Họ và tên Người lập biểu
-              </label>
-              <input
-                type="text"
-                value={formData.reporter_name || ''}
-                onChange={(e) => setFormData({ ...formData, reporter_name: e.target.value })}
-                placeholder="Ví dụ: Trần Thanh Tú"
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Chức danh Người lập biểu
-              </label>
-              <input
-                type="text"
-                value={formData.reporter_title || 'NGƯỜI LẬP BIỂU'}
-                onChange={(e) => setFormData({ ...formData, reporter_title: e.target.value })}
-                placeholder="Ví dụ: NGƯỜI LẬP BIỂU"
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Họ và tên Hiệu trưởng
               </label>
               <input
                 type="text"
                 value={formData.principal_name || ''}
                 onChange={(e) => setFormData({ ...formData, principal_name: e.target.value })}
-                placeholder="Ví dụ: Kiều Việt Hưng"
+                placeholder="Ví dụ: Nguyễn Văn A"
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
               />
             </div>
