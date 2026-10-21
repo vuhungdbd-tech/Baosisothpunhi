@@ -1077,13 +1077,39 @@ export const SettingsSchoolPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Họ và tên Người lập biểu
+              </label>
+              <input
+                type="text"
+                value={formData.reporter_name || ''}
+                onChange={(e) => setFormData({ ...formData, reporter_name: e.target.value })}
+                placeholder="Ví dụ: Trần Thanh Tú"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Chức danh Người lập biểu
+              </label>
+              <input
+                type="text"
+                value={formData.reporter_title || 'NGƯỜI LẬP BIỂU'}
+                onChange={(e) => setFormData({ ...formData, reporter_title: e.target.value })}
+                placeholder="Ví dụ: NGƯỜI LẬP BIỂU"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Họ và tên Hiệu trưởng
               </label>
               <input
                 type="text"
                 value={formData.principal_name || ''}
                 onChange={(e) => setFormData({ ...formData, principal_name: e.target.value })}
-                placeholder="Ví dụ: Nguyễn Văn A"
+                placeholder="Ví dụ: Kiều Việt Hưng"
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
               />
             </div>
