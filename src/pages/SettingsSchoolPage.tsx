@@ -53,10 +53,12 @@ export const SettingsSchoolPage: React.FC = () => {
   const [formData, setFormData] = useState<Partial<SchoolSettings>>(settings || {});
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [gradesInput, setGradesInput] = useState<string>(() => (settings?.grades || [6, 7, 8, 9]).join(', '));
 
   useEffect(() => {
     if (settings) {
       setFormData(settings);
+      setGradesInput((settings.grades || [6, 7, 8, 9]).join(', '));
     }
   }, [settings]);
 
@@ -396,9 +398,11 @@ export const SettingsSchoolPage: React.FC = () => {
             </label>
             <input
               type="text"
-              value={(formData.grades || [6, 7, 8, 9]).join(', ')}
+              value={gradesInput}
               onChange={(e) => {
-                const parts = e.target.value.split(',').map((s) => parseInt(s.trim())).filter((n) => !isNaN(n));
+                const val = e.target.value;
+                setGradesInput(val);
+                const parts = val.split(',').map((s) => parseInt(s.trim())).filter((n) => !isNaN(n));
                 setFormData({ ...formData, grades: parts.length > 0 ? parts : [6, 7, 8, 9] });
               }}
               placeholder="Ví dụ: 6, 7, 8, 9"
