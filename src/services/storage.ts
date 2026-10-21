@@ -633,6 +633,9 @@ export const StorageService = {
               s = { ...s, ...ext };
             }
             s.footer_text = cleanFooterText(s.footer_text);
+            if (!s.grades || !Array.isArray(s.grades)) {
+              s.grades = [6, 7, 8, 9];
+            }
           }
         } catch (err) {
           console.warn('Supabase fetch settings fallback to local', err);
